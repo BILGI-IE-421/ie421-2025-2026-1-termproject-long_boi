@@ -2,5 +2,5 @@
 125203106 - Meryem Öncü
 123203109 - Ahmed Efe Koluaçık
 123203059 - Beyza Altınköprü
-123203068 - Yağmur Kondakcıı
+123203068 - Yağmur Kondakcı
 122203026 - Öykü Akdoğan
