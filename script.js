@@ -1,0 +1,34 @@
+document.addEventListener('DOMContentLoaded', () => {
+    // Navigasyon butonlarını aktiflik durumuna göre renklendirme
+    const currentPath = window.location.pathname.split('/').pop() || 'index.html';
+    document.querySelectorAll('.nav-button').forEach(link => {
+        const href = link.getAttribute('href');
+        if (href === currentPath) {
+            link.classList.add('is-active');
+        }
+    });
+
+    // Sayfa içi animasyonlar
+    initPageAnimations();
+});
+
+function initPageAnimations() {
+    const sections = document.querySelectorAll('.card, .viz-block');
+    const observerOptions = { threshold: 0.1 };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, observerOptions);
+
+    sections.forEach(section => {
+        section.style.opacity = '0';
+        section.style.transform = 'translateY(20px)';
+        section.style.transition = 'all 0.6s ease-out';
+        observer.observe(section);
+    });
+}
