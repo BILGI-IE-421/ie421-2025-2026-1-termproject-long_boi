@@ -1,0 +1,69 @@
+import pandas as pd
+
+# --- 1. SETUP & PATHS ---
+events_fp = "/content/drive/MyDrive/421-dataset/events_2024.csv"
+air_fp = "/content/drive/MyDrive/421-dataset/air_quality_summer_winter.csv"
+complaints_fp = "/content/drive/MyDrive/421-dataset/311.csv"
+
+# --- 2. LOAD DATA ---
+# Load with correct separators
+events = pd.read_csv(events_fp, sep=';')
+air = pd.read_csv(air_fp, sep=';')
+noise = pd.read_csv(complaints_fp, sep=';', on_bad_lines='skip', engine='python')
+
+# --- 3. CLEAN COLUMNS ---
+# Strip accidental whitespace from column names
+events.columns = events.columns.str.strip()
+air.columns = air.columns.str.strip()
+noise.columns = noise.columns.str.strip()
+
+# Check loaded columns
+print("Events Cols:", events.columns.tolist())
+print("Noise Cols:", noise.columns.tolist())
+
+# --- 4. DATE PARSING ---
+# We do this ONCE, robustly.
+print("\nProcessing Dates...")
+
+# Events
+# Rename 'Date' column if it has hidden spaces/characters (safety step)
+events.rename(columns=lambda x: 'Date' if 'date' in x.lower() else x, inplace=True)
+events['Date'] = pd.to_datetime(events['Date'], dayfirst=True, errors='coerce')
+
+# Noise
+# Rename 'Created Dat' to standard 'Created Date'
+if 'Created Dat' in noise.columns:
+    noise.rename(columns={'Created Dat': 'Created Date'}, inplace=True)
+noise['Created Date'] = pd.to_datetime(noise['Created Date'], dayfirst=True, errors='coerce')
+
+# Check ranges
+print(f"Events Range: {events['Date'].min()} to {events['Date'].max()}")
+print(f"Noise Range: {noise['Created Date'].min()} to {noise['Created Date'].max()}")
+
+# --- 5. DAILY AGGREGATION ---
+# Create the daily counts needed for Visualizations & Regression
+
+# Events Daily Count
+events_daily = (
+    events
+    .groupby(events['Date'].dt.date)
+    .size()
+    .reset_index(name='event_count')
+)
+events_daily.rename(columns={'Date': 'Date'}, inplace=True) # Ensure column name is 'Date'
+events_daily['Date'] = pd.to_datetime(events_daily['Date'])
+
+# Noise Daily Count
+noise_daily = (
+    noise
+    .groupby(noise['Created Date'].dt.date)
+    .size()
+    .reset_index(name='noise_count')
+)
+noise_daily.rename(columns={'Created Date': 'Date'}, inplace=True) # Normalize name to 'Date'
+noise_daily['Date'] = pd.to_datetime(noise_daily['Date'])
+
+# --- 6. FINAL CHECK ---
+print("\n--- Aggregation Complete ---")
+print("Events Daily Head:\n", events_daily.head())
+print("\nNoise Daily Head:\n", noise_daily.head())
