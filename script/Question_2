@@ -1,0 +1,130 @@
+import pandas as pd
+import plotly.graph_objects as go
+from google.colab import drive
+
+# 1. LOAD DATA
+# drive.mount('/content/drive') # Uncomment if needed
+
+traffic_fp = "/content/drive/MyDrive/421-dataset/traffic_volume.csv"
+events_fp = "/content/drive/MyDrive/421-dataset/events_2024.csv"
+complaints_fp = "/content/drive/MyDrive/421-dataset/311.csv"
+
+# Load
+df_traf = pd.read_csv(traffic_fp, sep=';', on_bad_lines='skip')
+df_ev = pd.read_csv(events_fp, sep=';')
+df_no = pd.read_csv(complaints_fp, sep=';', on_bad_lines='skip', engine='python')
+
+# CLEANING
+for df in [df_traf, df_ev, df_no]:
+    df.columns = df.columns.str.strip()
+    for col in df.select_dtypes(['object']).columns:
+        df[col] = df[col].str.strip()
+
+# 2. AGGREGATE BY MONTH
+if 'year' in df_traf.columns:
+    df_traf = df_traf[df_traf['year'] == 2024]
+traf_monthly = df_traf.groupby('month')['volume'].sum().sort_index()
+
+df_no['Created Dat'] = pd.to_datetime(df_no['Created Dat'], dayfirst=True, errors='coerce')
+no_monthly = df_no.groupby(df_no['Created Dat'].dt.month)['Unique Key'].count().sort_index()
+
+df_ev['Date'] = pd.to_datetime(df_ev['Date'], dayfirst=True, errors='coerce')
+ev_monthly = df_ev.groupby(df_ev['Date'].dt.month)['Category'].count().sort_index()
+
+# 3. NORMALIZATION
+traf_norm = traf_monthly / traf_monthly.max()
+no_norm = no_monthly / no_monthly.max()
+ev_norm = ev_monthly / ev_monthly.max()
+
+# 4. PLOTTING (The Night Theme)
+fig = go.Figure()
+
+# --- A. Traffic (Cityscape) ---
+fig.add_trace(go.Bar(
+    x=traf_norm.index,
+    y=traf_norm.values,
+    name="Traffic Volume",
+    marker=dict(
+        color='#1c2541',          # Dark Building Color
+        line=dict(color='#3a506b', width=1),
+        pattern=dict(
+            shape='+',            # Windows
+            fgcolor='#5bc0be',
+            fillmode='overlay',
+            solidity=0.6
+        )
+    ),
+    opacity=1
+))
+
+# --- B. Noise (The Pulse) ---
+fig.add_trace(go.Scatter(
+    x=no_norm.index,
+    y=no_norm.values,
+    name="Noise Complaints",
+    mode='lines+markers',
+    line=dict(color='#ef233c', width=4),
+    marker=dict(size=8, color='#d90429')
+))
+
+# --- C. Events (The City Lights) ---
+fig.add_trace(go.Scatter(
+    x=ev_norm.index,
+    y=ev_norm.values,
+    name="Events",
+    mode='lines+markers',
+    line=dict(color='#ffea00', width=3, dash='dot'),
+    marker=dict(size=10, color='#ffff3f', symbol='star')
+))
+
+# --- D. THE MOON (New Addition) ---
+fig.add_annotation(
+    x=5,              # Month 5 (May)
+    y=1.15,           # Height (1.0 is max data, so 1.15 is floating above)
+    text="☾",        # Moon Emoji
+    showarrow=False,  # No arrow line, just the icon
+    font=dict(
+        size=50,      # Size of the moon
+        color="white" # Ensure it pops against the background (emojis maintain their own color usually)
+    )
+)
+
+# 5. LAYOUT STYLING
+fig.update_layout(
+    title=dict(
+        text='NYC Urban Rhythm Analysis for Events, Traffic & Noise Complaints',
+        font=dict(color='white', size=20)
+    ),
+    paper_bgcolor='#0b132b',
+    plot_bgcolor='#0b132b',
+
+    xaxis=dict(
+        title="Month",
+        title_font=dict(color='white'),
+        tickfont=dict(color='white'),
+        tickmode='array',
+        tickvals=list(range(1, 13)),
+        ticktext=['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+        showgrid=False
+    ),
+
+    yaxis=dict(
+        title="Relative Intensity",
+        title_font=dict(color='white'),
+        tickfont=dict(color='white'),
+        tickformat=".0%",
+        gridcolor='#1c2541',
+        range=[0, 1.25] # Increased range so the moon fits comfortably!
+    ),
+
+    legend=dict(
+        x=0.01, y=0.99,
+        bgcolor='rgba(11, 19, 43, 0.8)',
+        font=dict(color='white')
+    ),
+
+    hovermode="x unified",
+    margin=dict(l=40, r=40, t=60, b=40)
+)
+
+fig.show()
