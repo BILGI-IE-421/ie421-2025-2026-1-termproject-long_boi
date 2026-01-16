@@ -1,0 +1,128 @@
+import pandas as pd
+import numpy as np
+import plotly.graph_objects as go
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import r2_score
+
+# 1. SETUP & PATHS
+base_path = "/content/drive/MyDrive/421-dataset/"
+traffic_fp = base_path + "traffic_volume.csv"
+complaints_fp = base_path + "311.csv"
+
+# 2. LOAD DATA
+print("Loading data...")
+df_traf = pd.read_csv(traffic_fp, sep=';', on_bad_lines='skip', engine='python')
+df_no = pd.read_csv(complaints_fp, sep=';', on_bad_lines='skip', engine='python')
+
+# 3. CLEANING
+df_traf.columns = df_traf.columns.str.strip()
+df_no.columns = df_no.columns.str.strip()
+
+# --- PROCESS TRAFFIC (Jan - Jun 2024) ---
+print("Processing Traffic...")
+df_traf = df_traf[(df_traf['year'] == 2024) & (df_traf['month'] <= 6)]
+df_traf['Date'] = pd.to_datetime(df_traf[['year', 'month', 'day']])
+traf_daily = df_traf.groupby('Date')['volume'].sum().reset_index()
+
+# --- PROCESS NOISE (Jan - Jun 2024) ---
+print("Processing Noise...")
+# Handle column naming
+if 'Created Date' not in df_no.columns and 'Created Dat' in df_no.columns:
+    df_no.rename(columns={'Created Dat': 'Created Date'}, inplace=True)
+
+# Parse Date (Month First: 12/31/2024)
+df_no['Created Date'] = pd.to_datetime(df_no['Created Date'], dayfirst=False, errors='coerce')
+
+# Filter for Jan-Jun 2024
+df_no = df_no[(df_no['Created Date'].dt.year == 2024) & (df_no['Created Date'].dt.month <= 6)]
+
+# Aggregate Daily
+no_daily = df_no.groupby(df_no['Created Date'].dt.date).size().reset_index(name='noise_count')
+no_daily.rename(columns={'Created Date': 'Date'}, inplace=True)
+no_daily['Date'] = pd.to_datetime(no_daily['Date']) # Ensure datetime for merge
+
+# 4. MERGE
+df_model = pd.merge(traf_daily, no_daily, on='Date', how='inner')
+print(f"Data Points: {len(df_model)}")
+
+# 5. REGRESSION MODEL
+X = df_model[['volume']]
+y = df_model['noise_count']
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+model = LinearRegression()
+model.fit(X_train, y_train)
+
+# Predict
+y_pred = model.predict(X_test)
+r2 = r2_score(y_test, y_pred)
+
+# Generate smooth line for the plot
+x_range = np.linspace(X['volume'].min(), X['volume'].max(), 100).reshape(-1, 1)
+y_range_pred = model.predict(x_range)
+
+# 6. VISUALIZATION
+fig = go.Figure()
+
+# A. Actual Data Points (Green, Semi-Transparent)
+fig.add_trace(go.Scatter(
+    x=df_model['volume'],
+    y=df_model['noise_count'],
+    mode='markers',
+    name='Actual Daily Data',
+    marker=dict(
+        color='#2ca02c', # Standard Scientific Green
+        size=8,
+        opacity=0.5,     # Semi-transparent
+        line=dict(color='white', width=0)
+    ),
+    hovertemplate="Traffic: %{x}<br>Noise: %{y}<extra></extra>"
+))
+
+# B. Regression Line (Thick Red)
+fig.add_trace(go.Scatter(
+    x=x_range.flatten(),
+    y=y_range_pred,
+    mode='lines',
+    name='Predictive Model Line',
+    line=dict(color='red', width=5)
+))
+
+# C. Add "Stats Box" Annotation (TOP RIGHT)
+fig.add_annotation(
+    xref="paper", yref="paper",
+    x=0.95, y=0.95, # Position: Top Right (0.95, 0.95)
+    text=f"<b>Model Statistics:</b><br>- R-squared: {r2:.3f}<br>- Slope: {model.coef_[0]:.4f}",
+    showarrow=False,
+    font=dict(size=14, color="black"),
+    align="left",
+    bgcolor="white",
+    bordercolor="red",
+    borderwidth=2,
+    borderpad=10
+)
+
+fig.update_layout(
+    title=dict(
+        text="<b>Predictive Model: Impact of Traffic on Noise Complaints (Jan-Jun 2024)</b>",
+        font=dict(size=22)
+    ),
+    xaxis=dict(
+        title="Daily Traffic Volume",
+        showgrid=True,
+        gridcolor='lightgray',
+        gridwidth=0.5
+    ),
+    yaxis=dict(
+        title="Daily Noise Complaints",
+        showgrid=True,
+        gridcolor='lightgray',
+        gridwidth=0.5
+    ),
+    template="plotly_white",
+    plot_bgcolor="white"
+)
+
+fig.show()
