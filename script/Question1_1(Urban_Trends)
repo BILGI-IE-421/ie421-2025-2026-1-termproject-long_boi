@@ -1,0 +1,90 @@
+import pandas as pd
+import plotly.graph_objects as go
+import glob
+import os
+
+# --- 1. SETUP & PATHS ---
+base_path = "/content/drive/MyDrive/421-dataset/"
+traffic_fp = base_path + "traffic_volume.csv"
+electric_fp = base_path + "electric_consumption.csv"
+
+# --- 2. PROCESS CITIBIKE (Monthly Aggregation) ---
+print("Processing Citibike Data...")
+citi_monthly_counts = {}
+
+for m in range(1, 7):
+    month_str = f"2024{m:02d}"
+    folder_path = os.path.join(base_path, f"{month_str}-citibike-tripdata")
+    file_pattern = os.path.join(folder_path, "*.csv")
+    files = glob.glob(file_pattern)
+
+    current_month_total = 0
+
+    if not files:
+        continue
+
+    for f in files:
+        try:
+            # We only need 'started_at' to count rides
+            df_chunk = pd.read_csv(f, sep=';', usecols=['started_at'], engine='python', on_bad_lines='skip')
+            current_month_total += len(df_chunk)
+        except Exception as e:
+            print(f"  Skipped file {os.path.basename(f)}: {e}")
+
+    citi_monthly_counts[m] = current_month_total
+    print(f"  > Month {m} complete: {current_month_total:,} rides")
+
+# --- 3. PROCESS TRAFFIC (Monthly Aggregation) ---
+print("Processing Traffic Data...")
+df_traf = pd.read_csv(traffic_fp, sep=';', on_bad_lines='skip', engine='python')
+
+df_traf.columns = df_traf.columns.str.strip()
+df_traf = df_traf[(df_traf['year'] == 2024) & (df_traf['month'] <= 6)]
+# Monthly Aggregation
+traf_monthly = df_traf.groupby('month')['volume'].sum().sort_index()
+
+# --- 4. PROCESS ELECTRICITY (Monthly Aggregation) ---
+print("Processing Electricity Data...")
+df_elec = pd.read_csv(electric_fp, sep=';', engine='python', on_bad_lines='skip')
+df_elec.columns = df_elec.columns.str.strip().str.replace('"', '')
+
+df_elec['Revenue Month'] = pd.to_datetime(df_elec['Revenue Month'], format='%Y-%m', errors='coerce')
+df_elec = df_elec[(df_elec['Revenue Month'].dt.year == 2024) & (df_elec['Revenue Month'].dt.month <= 6)]
+
+if df_elec['Consumption (KWH)'].dtype == 'object':
+     df_elec['Consumption (KWH)'] = df_elec['Consumption (KWH)'].astype(str).str.replace(',', '').str.replace('"', '')
+     df_elec['Consumption (KWH)'] = pd.to_numeric(df_elec['Consumption (KWH)'], errors='coerce')
+
+elec_monthly = df_elec.groupby(df_elec['Revenue Month'].dt.month)['Consumption (KWH)'].sum().sort_index()
+
+# --- 5. VISUALIZATION PREP (Normalization) ---
+months = list(range(1, 7))
+df_viz1 = pd.DataFrame({'Month': months})
+
+df_viz1['Citibike'] = df_viz1['Month'].map(citi_monthly_counts)
+df_viz1['Traffic'] = df_viz1['Month'].map(traf_monthly)
+df_viz1['Electric'] = df_viz1['Month'].map(elec_monthly)
+
+# Normalize (0-1 Scale)
+for col in ['Citibike', 'Traffic', 'Electric']:
+    df_viz1[col] = df_viz1[col].fillna(0)
+    if df_viz1[col].max() > 0:
+        df_viz1[f'{col}_norm'] = df_viz1[col] / df_viz1[col].max()
+    else:
+        df_viz1[f'{col}_norm'] = 0
+
+# --- 6. PLOTTING (Viz A) ---
+fig1 = go.Figure()
+fig1.add_trace(go.Scatter(x=df_viz1['Month'], y=df_viz1['Citibike_norm'], name='Citibike', line=dict(color='#00b4d8', width=4)))
+fig1.add_trace(go.Scatter(x=df_viz1['Month'], y=df_viz1['Traffic_norm'], name='Traffic', line=dict(color='#023e8a', width=3, dash='dash')))
+fig1.add_trace(go.Scatter(x=df_viz1['Month'], y=df_viz1['Electric_norm'], name='Electricity', line=dict(color='#fca311', width=3)))
+
+fig1.update_layout(
+    title="<b>Urban Trends:</b> Normalized Intensity (Jan - Jun 2024)",
+    xaxis=dict(tickmode='array', tickvals=months, ticktext=['Jan','Feb','Mar','Apr','May','Jun'], title='Month'),
+    yaxis_title="Relative Intensity (0-1)",
+    template="plotly_white",
+    hovermode="x unified"
+)
+
+fig1.show()
