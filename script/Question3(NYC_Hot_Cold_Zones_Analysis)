@@ -1,0 +1,110 @@
+import pandas as pd
+import plotly.graph_objects as go
+# from google.colab import drive
+
+# 1. LOAD DATA
+# drive.mount('/content/drive')
+
+events_fp = "/content/drive/MyDrive/421-dataset/events_2024.csv"
+air_fp = "/content/drive/MyDrive/421-dataset/air_quality_summer_winter.csv"
+complaints_fp = "/content/drive/MyDrive/421-dataset/311.csv"
+
+df_ev = pd.read_csv(events_fp, sep=';')
+df_air = pd.read_csv(air_fp, sep=';')
+df_no = pd.read_csv(complaints_fp, sep=';', on_bad_lines='skip', engine='python')
+
+# CLEANING
+for df in [df_ev, df_air, df_no]:
+    df.columns = df.columns.str.strip()
+    for col in df.select_dtypes(['object']).columns:
+        df[col] = df[col].str.strip()
+
+# 2. PROCESS DATA
+df_ev['Date'] = pd.to_datetime(df_ev['Date'], dayfirst=True, errors='coerce')
+df_no['Created Dat'] = pd.to_datetime(df_no['Created Dat'], dayfirst=True, errors='coerce')
+
+# Noise & Events Matrices
+no_pivot = df_no.assign(m=df_no['Created Dat'].dt.month, d=df_no['Created Dat'].dt.day).pivot_table(index='m', columns='d', values='Unique Key', aggfunc='count', fill_value=0)
+ev_pivot = df_ev.assign(m=df_ev['Date'].dt.month, d=df_ev['Date'].dt.day).pivot_table(index='m', columns='d', values='Category', aggfunc='count', fill_value=0)
+
+# Air Quality Zone IDs
+df_air['Zone_ID'] = df_air.index + 1
+
+# 3. BUILD FIGURE
+fig = go.Figure()
+
+# --- Trace 1: Noise Heatmap ---
+fig.add_trace(go.Heatmap(
+    z=no_pivot.values, x=no_pivot.columns, y=no_pivot.index,
+    colorscale='plasma', name="Noise", visible=True,
+    colorbar=dict(title="2024 Noise Complaints")
+))
+
+# --- Trace 2: Events Heatmap ---
+fig.add_trace(go.Heatmap(
+    z=ev_pivot.values, x=ev_pivot.columns, y=ev_pivot.index,
+    colorscale='plasma', name="Events", visible=False,
+    colorbar=dict(title="2024 Event Count")
+))
+
+# --- Trace 3: Winter Box Plot ---
+fig.add_trace(go.Box(
+    y=df_air['winter_mcg/m3'],
+    name='Winter',
+    marker_color='#51b4cb',
+    boxpoints='all',
+    jitter=0.3,             # Spread points out slightly so they don't overlap too much
+    pointpos=-1.8,          # <--- Move points clearly to the LEFT side
+    width=0.3,              # <--- Make the box narrower (less wide)
+    visible=False
+))
+
+# --- Trace 4: Summer Box Plot ---
+fig.add_trace(go.Box(
+    y=df_air['summer_mcg/m3'],
+    name='Summer',
+    marker_color='#dc655f',
+    boxpoints='all',
+    jitter=0.3,
+    pointpos=-1.8,          # <--- Move points clearly to the LEFT side
+    width=0.3,              # <--- Make the box narrower
+    visible=False
+))
+
+# 4. MENU & LAYOUT
+fig.update_layout(
+    title="NYC Hot/Cold Zones Analysis",
+
+    # Background Colors
+    plot_bgcolor='#FFFFFF',
+    paper_bgcolor='#FFFFFF',
+    template='plotly_white',
+
+    updatemenus=[dict(
+        active=0,
+        buttons=[
+            # 1. Noise Button
+            dict(label="Noise Intensity (Time)", method="update",
+                 args=[{"visible": [True, False, False, False]},
+                       {"xaxis": {"title": "Day", "range": [1, 31]},
+                        "yaxis": {"title": "Month", "autorange": True}}]),
+
+            # 2. Events Button
+            dict(label="Event Hotspots (Time)", method="update",
+                 args=[{"visible": [False, True, False, False]},
+                       {"xaxis": {"title": "Day", "range": [1, 31]},
+                        "yaxis": {"title": "Month", "autorange": True}}]),
+
+            # 3. Air Quality Button (BOX PLOT MODE)
+            dict(label="Air Quality (Distribution)", method="update",
+                 args=[{"visible": [False, False, True, True]},
+                       {
+                           "xaxis": {"title": "Season", "range": [-0.5, 1.5]},
+                           "yaxis": {"title": "Pollution (mcg/m3)", "range": [4, 14]} # <--- ZOOMED RANGE (4 to 14)
+                       }])
+        ],
+        x=0.4, y=1.1
+    )]
+)
+
+fig.show()
