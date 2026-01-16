@@ -1,0 +1,84 @@
+import pandas as pd
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+import glob
+import os
+
+# --- 1. SETUP & PATHS ---
+base_path = "/content/drive/MyDrive/421-dataset/"
+traffic_fp = base_path + "traffic_volume.csv"
+
+# --- 2. PROCESS CITIBIKE (Daily Aggregation) ---
+print("Processing Citibike Data...")
+citi_daily_counts = {}
+
+for m in range(1, 7):
+    month_str = f"2024{m:02d}"
+    folder_path = os.path.join(base_path, f"{month_str}-citibike-tripdata")
+    file_pattern = os.path.join(folder_path, "*.csv")
+    files = glob.glob(file_pattern)
+
+    if not files:
+        continue
+
+    for f in files:
+        try:
+            # Load and parse dates for daily counting
+            df_chunk = pd.read_csv(f, sep=';', usecols=['started_at'], engine='python', on_bad_lines='skip')
+            df_chunk['started_at'] = pd.to_datetime(df_chunk['started_at'], dayfirst=True, errors='coerce')
+
+            # Daily Aggregation
+            daily_counts = df_chunk['started_at'].dt.date.value_counts()
+            for date, count in daily_counts.items():
+                citi_daily_counts[date] = citi_daily_counts.get(date, 0) + count
+
+        except Exception as e:
+            print(f"  Skipped file {os.path.basename(f)}: {e}")
+    print(f"  > Month {m} processed.")
+
+# Convert Daily Dictionary to DataFrame
+df_citi_daily = pd.DataFrame(list(citi_daily_counts.items()), columns=['Date', 'Rides'])
+df_citi_daily['Date'] = pd.to_datetime(df_citi_daily['Date'])
+df_citi_daily = df_citi_daily.sort_values('Date')
+df_citi_daily = df_citi_daily[(df_citi_daily['Date'] >= '2024-01-01') & (df_citi_daily['Date'] <= '2024-06-30')]
+
+# --- 3. PROCESS TRAFFIC (Daily Aggregation) ---
+print("Processing Traffic Data...")
+df_traf = pd.read_csv(traffic_fp, sep=';', on_bad_lines='skip', engine='python')
+
+df_traf.columns = df_traf.columns.str.strip()
+df_traf = df_traf[(df_traf['year'] == 2024) & (df_traf['month'] <= 6)]
+df_traf['Date'] = pd.to_datetime(df_traf[['year', 'month', 'day']])
+
+# Daily Aggregation
+traf_daily = df_traf.groupby('Date')['volume'].sum().reset_index()
+
+# --- 4. PLOTTING (Viz B - Pulse) ---
+fig2 = make_subplots(specs=[[{"secondary_y": True}]])
+
+# Citibike (Left Axis) - Bright Red Pulse
+fig2.add_trace(
+    go.Scatter(x=df_citi_daily['Date'], y=df_citi_daily['Rides'], name="Citibike Rides", 
+               line=dict(color='#ef233c', width=2), fill='tozeroy'), 
+    secondary_y=False
+)
+
+# Traffic (Right Axis) - Dark Maroon Pulse
+fig2.add_trace(
+    go.Scatter(x=traf_daily['Date'], y=traf_daily['volume'], name="Traffic Volume", 
+               line=dict(color='#540d1e', width=2)), 
+    secondary_y=True
+)
+
+fig2.update_layout(
+    title="<b>Daily Mobility Pulse:</b> Bikes vs Cars (Jan - Jun 2024)", 
+    template="plotly_white", 
+    hovermode="x unified"
+)
+
+# Disable grids for clean look
+fig2.update_yaxes(title_text="Citibike Rides", secondary_y=False, showgrid=False)
+fig2.update_yaxes(title_text="Traffic Volume", secondary_y=True, showgrid=False)
+fig2.update_xaxes(showgrid=False)
+
+fig2.show()
