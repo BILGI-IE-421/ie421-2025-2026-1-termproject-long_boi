@@ -233,5 +233,5 @@
 }
 
 .zoom-overlay.active #zoomedImg {
-    transform: scale(1); /* Açılırken hafif büyüme efekti */
+    transform: scale(1); 
 }
