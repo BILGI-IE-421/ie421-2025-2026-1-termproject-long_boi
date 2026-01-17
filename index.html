@@ -139,7 +139,7 @@ The daily view shows Citibike data as a literal heartbeat spiking and dropping w
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.getElementById(pageId).classList.add('active');
 
-        // Navbar içeriğini home sayfasında gizle, diğer sayfalarda göster
+
         const navbar = document.querySelector('.navbar');
         if(pageId === 'home') {
             navbar.classList.add('empty');
@@ -153,7 +153,7 @@ The daily view shows Citibike data as a literal heartbeat spiking and dropping w
         if(navMap[pageId]!==undefined) navButtons[navMap[pageId]].classList.add('active');
     }
 
-    // Sayfa yüklendiğinde navbar'ı kontrol et
+    
     window.addEventListener('DOMContentLoaded', function() {
         const activePage = document.querySelector('.page.active');
         if(activePage && activePage.id === 'home') {
@@ -161,7 +161,7 @@ The daily view shows Citibike data as a literal heartbeat spiking and dropping w
         }
     });
 
-    // Long Boi follow cursor
+    
     const longBoi = document.getElementById('duck');
     let mouseX = window.innerWidth/2;
     let mouseY = window.innerHeight/2;
@@ -175,7 +175,7 @@ The daily view shows Citibike data as a literal heartbeat spiking and dropping w
 
     function animateDuck() {
         if(document.getElementById('home').classList.contains('active')) {
-            // Smooth follow
+            
             posX += (mouseX - posX)*0.08;
             posY += (mouseY - posY)*0.08;
 
@@ -191,13 +191,13 @@ The daily view shows Citibike data as a literal heartbeat spiking and dropping w
     }
     animateDuck();
     document.addEventListener('click', function (e) {
-    // 1. ZOOM AÇMA MANTIĞI
+    
     const target = e.target.closest('.zoomable');
     if (target) {
         const overlay = document.getElementById('zoomOverlay');
         const zoomedImg = document.getElementById('zoomedImg');
         
-        // Eğer tıklanan şeyin kendisi <img> değilse içindeki ilk <img>'yi bul
+        
         let imageSrc = '';
         if (target.tagName === 'IMG') {
             imageSrc = target.src;
@@ -209,16 +209,16 @@ The daily view shows Citibike data as a literal heartbeat spiking and dropping w
         if (imageSrc) {
             zoomedImg.src = imageSrc;
             overlay.classList.add('active');
-            // Sayfa kaymasını engellemek için body'i kilitleyebiliriz (opsiyonel)
+            
             document.body.style.overflow = 'hidden';
         }
     }
 
-    // 2. ZOOM KAPATMA MANTIĞI (Siyah alana veya resme basınca geri dön)
+    
     const overlay = document.getElementById('zoomOverlay');
          if (e.target.id === 'zoomOverlay' || e.target.id === 'zoomedImg') {
         overlay.classList.remove('active');
-        document.body.style.overflow = 'auto'; // Kaydırmayı tekrar aç
+        document.body.style.overflow = 'auto'; 
     }
 });
         
