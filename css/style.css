@@ -235,3 +235,26 @@
 .zoom-overlay.active #zoomedImg {
     transform: scale(1); 
 }
+.page-header h1 { 
+    font-size: 38px !important; 
+}
+
+
+.box h2, .visual-box h3 { 
+    font-size: 26px !important; 
+}
+
+
+.box-content p, .box-content li, .visual-box p { 
+    font-size: 19px !important; 
+    line-height: 1.7 !important; 
+    text-align: justify;
+}
+
+
+.box-content ul {
+    margin-top: 15px;
+}
+.box, .visual-box {
+    padding: 35px !important; 
+}
