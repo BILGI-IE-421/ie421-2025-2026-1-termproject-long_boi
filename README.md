@@ -23,7 +23,8 @@ In addition, the project evaluates the relationship between selected variables t
 • `css/`: Defines the visual layout, typography, and overall styling of the website interface.  
 
 ## Hosting
-• Website GitHub Repository: https://github.com/BILGI-IE-421/ie421-2025-2026-1-termproject-long_boi  
 • Website Link: https://bilgi-ie-421.github.io/ie421-2025-2026-1-termproject-long_boi/
+ 
+• Website GitHub Repository: https://github.com/BILGI-IE-421/ie421-2025-2026-1-termproject-long_boi 
 
 
