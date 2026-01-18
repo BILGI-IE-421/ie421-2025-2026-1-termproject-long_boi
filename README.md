@@ -17,6 +17,7 @@ This project examines New York City as a dynamic system with a recurring daily "
 • `css/`: Defines the visual layout, typography, and overall styling of the website interface.  
 
 # Hosting
-Website Link: https://beyzaaltinkopru.github.io/termproject_long_boi/
+• Website GitHub Repository: https://github.com/BILGI-IE-421/ie421-2025-2026-1-termproject-long_boi  
+• Website Link: https://beyzaaltinkopru.github.io/termproject_long_boi/
 
 
