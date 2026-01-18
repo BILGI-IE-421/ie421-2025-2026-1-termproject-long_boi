@@ -2,7 +2,8 @@
 # Description
 This project examines New York City as a dynamic system with a recurring daily "breathing rhythm." Using time-series data from electricity consumption, air quality measurements, traffic volume intensity, subway usage, social events, Citi Bike activity, and 311 noise complaints, we analyze how different urban indicators rise and fall throughout the day. The project focuses on identifying shared temporal patterns across these datasets to understand the city's core daily activity cycle. In addition, we explore how secondary factors such as noise levels, social events, and traffic congestion align with or deviate from this primary rhythm. Finally, by comparing temporal fluctuations across datasets, we investigate whether "hot" and "cold" periods of urban activity emerge over time, revealing moments of intensified or reduced urban engagement rather than fixed spatial zones. Together, these analyses provide insight into how urban systems interact and evolve over time.
 
-https://beyzaaltinkopru.github.io/termproject_long_boi/
+### project link
+https://bilgi-ie-421.github.io/ie421-2025-2026-1-termproject-long_boi/
 
 125203106 - Meryem Öncü
 
