@@ -3,7 +3,9 @@
 
 ## New York City's Life Rhythms
 This project explores New York City as a dynamic urban system characterized by a recurring daily “breathing rhythm.” Using time-series data from multiple urban indicators including electricity consumption, air quality measurements, traffic volume intensity, Citi Bike usage, social event activity and 311 noise complaints, the study examines how different components of the city rise and fall over time. By normalizing and comparing these datasets, the analysis aims to identify shared temporal patterns that reflect the city’s underlying activity cycle.  
+
 Beyond this primary rhythm, the project investigates how secondary factors such as noise levels, traffic congestion, and social behavior align with or deviate from the dominant urban pattern. Seasonal and daily variations are examined to determine whether fluctuations occur uniformly or exhibit irregular disruptions driven by external influences. Interactive visualizations are used to reveal synchronized trends, anomalous spikes, and periods of divergence across datasets.  
+
 In addition, the project evaluates the relationship between selected variables through regression analysis to assess their predictive connections and relative explanatory strength. Rather than focusing on fixed spatial hotspots, the study emphasizes temporal “hot” and “cold” periods of urban intensity. Together, the findings highlight the complexity of urban dynamics and demonstrate how mobility, environmental conditions, and social activity collectively shape the evolving rhythm of New York City.
 
 ## Student Names
