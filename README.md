@@ -24,6 +24,6 @@ In addition, the project evaluates the relationship between selected variables t
 
 ## Hosting
 • Website GitHub Repository: https://github.com/BILGI-IE-421/ie421-2025-2026-1-termproject-long_boi  
-• Website Link: https://beyzaaltinkopru.github.io/termproject_long_boi/
+• Website Link: https://bilgi-ie-421.github.io/ie421-2025-2026-1-termproject-long_boi/
 
 
