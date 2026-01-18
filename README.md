@@ -13,7 +13,7 @@ This project examines New York City as a dynamic system with a recurring daily "
 
 · 122203026 - Öykü Akdoğan
 
-# Project Link
+# Hosting
 Website Link: https://beyzaaltinkopru.github.io/termproject_long_boi/
 
 
