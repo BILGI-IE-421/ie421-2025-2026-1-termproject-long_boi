@@ -5,6 +5,7 @@ This project examines New York City as a dynamic system with a recurring daily "
 ### project link
 https://bilgi-ie-421.github.io/ie421-2025-2026-1-termproject-long_boi/
 
+### team members
 125203106 - Meryem Öncü
 
 123203109 - Ahmed Efe Koluaçık
