@@ -11,7 +11,7 @@ This project examines New York City as a dynamic system with a recurring daily "
 
 # Files
 • `data/`: Contains the raw datasets used in the analysis, including Citi Bike usage, air quality measurements, 311 noise complaints, electricity consumption, and traffic volume data.  
-• `visuals/`:    
+• `visuals/`: Presents the project’s visual outputs, including line and area charts for city breathing rhythm, combo charts for secondary factors, interactive heatmaps and box plots for hot–cold zones and regression-based prediction plots.    
 • `scripts/`: Includes the data processing and analysis scripts used for cleaning datasets, normalization, and generating visual outputs.  
 • `index.html`: Serves as the main webpage for presenting the project content and interactive & descriptive visualizations.  
 • `css/`: Defines the visual layout, typography, and overall styling of the website interface.  
