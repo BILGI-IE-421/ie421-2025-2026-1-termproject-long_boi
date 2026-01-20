@@ -16,7 +16,7 @@ In addition, the project evaluates the relationship between selected variables t
 • 122203026 - Öykü Akdoğan
 
 ## Files
-• `data/`: Contains the raw datasets used in the analysis, including Citi Bike usage, air quality measurements, 311 noise complaints, electricity consumption, and traffic volume data.  
+• `data/`: Contains the raw datasets used in the analysis, including Citi Bike usage, air quality measurements, 311 noise complaints, electricity consumption, and traffic volume data.  https://drive.google.com/drive/folders/1weyAcFn52j2p40bi-5ycRLmCePjVT2KY?usp=sharing
 • `visuals/`: Presents the project’s visual outputs, including line and area charts for city breathing rhythm, combo charts for secondary factors, interactive heatmaps and box plots for hot–cold zones and regression-based prediction plots.    
 • `scripts/`: Includes the data processing and analysis scripts used for cleaning datasets, normalization, and generating visual outputs.  
 • `index.html`: Serves as the main webpage for presenting the project content and interactive & descriptive visualizations.  
